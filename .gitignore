@@ -1,0 +1,8 @@
+*.swp
+*.dat
+*.log*
+*.json
+*.html
+.idea
+*.iml
+*.eml
