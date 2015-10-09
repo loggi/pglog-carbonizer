@@ -11,10 +11,12 @@ import (
 )
 
 type Config struct {
-	Enabled      bool   // enables the actual sending or uses a nop sender
-	InputLogFile string // file to be watched and read
-	LogLevel     string // log level
-	TailTimeout  int    // timeout in seconds
+	Main struct {
+		Enabled      bool   // enables the actual sending or uses a nop sender
+		InputLogFile string // file to be watched and read
+		LogLevel     string // log level
+		TailTimeout  int    // timeout in seconds
+	}
 	graphite.Graphite
 }
 
@@ -44,14 +46,14 @@ func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 func WatchLog(watched string, munch Muncher, conf Config) {
 
 	// Set timeout to 0 to automatically fail if file isn't found
-	tail, err := gotail.NewTail(watched, gotail.Config{Timeout: conf.TailTimeout})
+	tail, err := gotail.NewTail(watched, gotail.Config{Timeout: conf.Main.TailTimeout})
 	if err != nil {
 		log.WithError(err).Fatal()
 	}
 
 	for line := range tail.Lines {
 		if line != "" {
-			munch(line, conf.Prefix)
+			munch(line, conf.Graphite.Prefix)
 		}
 	}
 }

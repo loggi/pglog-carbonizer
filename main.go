@@ -1,11 +1,11 @@
 package main
 
 import (
-	"code.google.com/p/gcfg"
 	"flag"
 	log "github.com/Sirupsen/logrus"
 	"github.com/marpaia/graphite-golang"
 	carbon "loggi/pglog-carbonizer/pglog_carbonizer"
+	"gopkg.in/gcfg.v1"
 )
 
 const (
@@ -26,12 +26,12 @@ func init() {
 	log.WithField("Using configuration file", confPath).Info()
 	err := gcfg.ReadFileInto(&conf, confPath)
 	carbon.CheckAndPanic(err, "Couldn't read configuration file", log.Fields{})
-	level, err := log.ParseLevel(conf.LogLevel)
-	carbon.CheckAndPanic(err, "Couldn't set debug level", log.Fields{"level": conf.LogLevel})
+	level, err := log.ParseLevel(conf.Main.LogLevel)
+	carbon.CheckAndPanic(err, "Couldn't set debug level", log.Fields{"level": conf.Main.LogLevel})
 
 	// using some config values
 	log.SetLevel(level)
-	if conf.Enabled {
+	if conf.Main.Enabled {
 		gcon, err = graphite.NewGraphite(conf.Graphite.Host, conf.Graphite.Port)
 		carbon.CheckAndPanic(err, "Couldn't read configuration file", log.Fields{
 			"host": conf.Graphite.Host,
@@ -45,5 +45,5 @@ func init() {
 }
 
 func main() {
-	carbon.WatchLog(conf.InputLogFile, carbon.NewGraphiteSender(gcon), conf)
+	carbon.WatchLog(conf.Main.InputLogFile, carbon.NewGraphiteSender(gcon), conf)
 }
