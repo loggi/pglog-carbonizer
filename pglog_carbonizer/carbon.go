@@ -53,7 +53,9 @@ func WatchLog(watched string, munch Muncher, conf Config) {
 
 	for line := range tail.Lines {
 		if line != "" {
-			munch(line, conf.Graphite.Prefix)
+			if err := munch(line, conf.Graphite.Prefix); err != nil {
+				log.WithError(err).Error()
+			}
 		}
 	}
 }
