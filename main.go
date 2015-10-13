@@ -4,7 +4,7 @@ import (
 	"flag"
 	log "github.com/Sirupsen/logrus"
 	"github.com/marpaia/graphite-golang"
-	carbon "loggi/pglog-carbonizer/pglog_carbonizer"
+	carbon "github.com/loggi/pglog-carbonizer/pglog_carbonizer"
 	"gopkg.in/gcfg.v1"
 )
 
