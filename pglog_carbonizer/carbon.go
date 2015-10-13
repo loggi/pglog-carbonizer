@@ -8,6 +8,7 @@ import (
 	"github.com/marpaia/graphite-golang"
 	processor "github.com/loggi/pglog-processor/types"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -36,12 +37,12 @@ func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 		count := graphite.NewMetric(
 			fmt.Sprintf("%s.count", key),
 			fmt.Sprintf("%v", en.Count),
-			en.Timestamp.Unix())
+			time.Time(en.Timestamp).Unix())
 
 		duration := graphite.NewMetric(
 			fmt.Sprintf("%s.duration", key),
 			fmt.Sprintf("%v", en.Duration),
-			en.Timestamp.Unix())
+			time.Time(en.Timestamp).Unix())
 
 		return gcon.SendMetrics([]graphite.Metric{count, duration})
 	}
