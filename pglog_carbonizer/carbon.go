@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/dleung/gotail"
+	"github.com/hpcloud/tail"
 	"github.com/marpaia/graphite-golang"
-	processor "loggi/pglog-processor/types"
+	processor "github.com/loggi/pglog-processor/types"
 	"strings"
 )
 
@@ -15,7 +15,7 @@ type Config struct {
 		Enabled      bool   // enables the actual sending or uses a nop sender
 		InputLogFile string // file to be watched and read
 		LogLevel     string // log level
-		TailTimeout  int    // timeout in seconds
+		Lines        int    // number of lines to be read from log. 0 to unlimited.
 	}
 	graphite.Graphite
 }
@@ -42,20 +42,31 @@ func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 	}
 }
 
-// Watches the given log, munching new lines read.
-func WatchLog(watched string, munch Muncher, conf Config) {
+type Watcher struct {
+	Tail *tail.Tail
+}
 
-	// Set timeout to 0 to automatically fail if file isn't found
-	tail, err := gotail.NewTail(watched, gotail.Config{Timeout: conf.Main.TailTimeout})
+// Creates a Watcher around a watched file.
+func WatchLog(watched string) Watcher {
+	tail, err := tail.TailFile(watched, tail.Config{Follow: true, ReOpen: true })
 	if err != nil {
 		log.WithError(err).Fatal()
+		panic(err)
 	}
+	return Watcher{ Tail : tail }
+}
 
-	for line := range tail.Lines {
-		if line != "" {
-			if err := munch(line, conf.Graphite.Prefix); err != nil {
+// Watch a log file, munching new lines read.
+func (w Watcher) Watch(munch Muncher, conf Config) {
+	i := 0
+	for line := range w.Tail.Lines {
+		if line.Text != "" {
+			if err := munch(line.Text, conf.Graphite.Prefix); err != nil {
 				log.WithError(err).Error()
 			}
+		}
+		if i++; i == conf.Main.Lines {
+			break
 		}
 	}
 }

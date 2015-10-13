@@ -45,5 +45,5 @@ func init() {
 }
 
 func main() {
-	carbon.WatchLog(conf.Main.InputLogFile, carbon.NewGraphiteSender(gcon), conf)
+	carbon.WatchLog(conf.Main.InputLogFile).Watch(carbon.NewGraphiteSender(gcon), conf)
 }
