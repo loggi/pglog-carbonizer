@@ -50,5 +50,6 @@ func init() {
 // Currently reads the entire logfile upon start. External truncating of
 // file is demanded, if this behavior is not wanted.
 func main() {
+	log.Info("All good. Ready to Go.")
 	carbon.WatchLog(conf.Main.InputLogFile).Watch(carbon.NewGraphiteSender(gcon), conf)
 }

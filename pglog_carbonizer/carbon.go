@@ -28,6 +28,7 @@ type Muncher func(jsonData string, prefix string) error
 // Creates a Muncher specific to a entry type: NormalizedInfoEntry
 func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 	return func(jsonData string, prefix string) error {
+		gcon.Connect()
 		var en = processor.NormalizedInfoEntry{}
 		if err := json.Unmarshal([]byte(jsonData), &en); err != nil {
 			return err
@@ -38,25 +39,40 @@ func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 			log.WithField("action", en.Action).Debug("Unwanted")
 			return nil
 		}
-		key := fmt.Sprintf("%s.%s", prefix, strings.ToLower(en.Action))
 
+		key := fmt.Sprintf("%s.%s", prefix, strings.ToLower(en.Action))
 		ts := time.Time(en.Timestamp).Unix()
 
 		count := graphite.NewMetric(
 			fmt.Sprintf("%s.count", key),
 			fmt.Sprintf("%v", en.Count),
 			ts)
+		if err := gcon.SendMetric(count); err != nil {
+			log.WithField("metric", count).Error(err)
+			return err
+		} else {
+			log.WithField("sent", fmt.Sprintf("%s %s %d\n", count.Name, count.Value, count.Timestamp)).Info("sent")
+		}
 
 		duration := graphite.NewMetric(
-			fmt.Sprintf("%s.duration", key),
-			fmt.Sprintf("%v", en.Duration),
-			ts)
+		fmt.Sprintf("%s.duration", key),
+		fmt.Sprintf("%v", en.Duration),
+		ts)
+
+		if err := gcon.SendMetric(duration); err != nil {
+			log.WithField("metric", duration).Error(err)
+			return err
+		} else {
+			log.WithField("sent", fmt.Sprintf("%s %s %d\n", duration.Name, duration.Value, duration.Timestamp)).Info("sent")
+		}
 
 		log.WithFields(log.Fields{
-			"count": count,
-			"duration":duration,
-		}).Info("Sending metrics")
-		return gcon.SendMetrics([]graphite.Metric{count, duration})
+					"count": count,
+					"duration":duration,
+				}).Info("Sending metrics")
+
+
+		return gcon.SendMetric(count)
 	}
 }
 
