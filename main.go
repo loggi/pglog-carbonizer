@@ -44,6 +44,9 @@ func init() {
 	log.WithField("Connection", gcon).Info()
 }
 
+// Watches a logfile for new entries, then sending new values to carbon.
+// Currently reads the entire logfile upon start. External truncating of
+// file is demanded, if this behavior is not wanted.
 func main() {
 	carbon.WatchLog(conf.Main.InputLogFile).Watch(carbon.NewGraphiteSender(gcon), conf)
 }
