@@ -27,10 +27,30 @@ func TestMuncher(t *testing.T) {
 func TestWatchLog(t *testing.T) {
 	conf := Config{}
 	conf.Main.Lines = 1
-	WatchLog("/tmp/pglog-carbonizer.log").Watch(func(line string, prefix string) error {
-		fmt.Println()
-		return nil
-	}, conf)
+
+	// Watches the log
+	ready := make(chan bool)
+	go func() {
+		<-ready
+		fmt.Println("Night gathers, and now my watch begins.")
+		WatchLog("/tmp/pglog-carbonizer.log").Watch(func(line string, prefix string) error {
+			fmt.Println("It shall not end until my death.")
+			return nil
+		}, conf)
+	}()
+
+	// Setting logfile
+	if err := createFile(logfile); err != nil {
+		log.Fatal(err)
+		t.Fail()
+	}
+	if err := writeLine(logfile, JSON_DATA); err != nil {
+		t.Error(err)
+	}
+
+	// GO!
+	ready<- true
+	fmt.Println("Farewell.")
 }
 
 // Makes tests over tail implementation choosed easier.

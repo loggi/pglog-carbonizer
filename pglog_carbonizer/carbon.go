@@ -32,18 +32,24 @@ func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 			return err
 		}
 		key := fmt.Sprintf("%s.%s", prefix, strings.ToLower(en.Action))
-		log.WithField("entry", en).Info()
+		log.WithField("entry", en).Debug()
+
+		ts := time.Time(en.Timestamp).Unix()
 
 		count := graphite.NewMetric(
 			fmt.Sprintf("%s.count", key),
 			fmt.Sprintf("%v", en.Count),
-			time.Time(en.Timestamp).Unix())
+			ts)
 
 		duration := graphite.NewMetric(
 			fmt.Sprintf("%s.duration", key),
 			fmt.Sprintf("%v", en.Duration),
-			time.Time(en.Timestamp).Unix())
+			ts)
 
+		log.WithFields(log.Fields{
+			"count": count,
+			"duration":duration,
+		}).Info("Sending metrics")
 		return gcon.SendMetrics([]graphite.Metric{count, duration})
 	}
 }
