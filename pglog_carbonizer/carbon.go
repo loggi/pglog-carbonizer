@@ -25,14 +25,20 @@ type Config struct {
 type Muncher func(jsonData string, prefix string) error
 
 // Sends data extracted from json to graphite's carbon.
+// Creates a Muncher specific to a entry type: NormalizedInfoEntry
 func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 	return func(jsonData string, prefix string) error {
 		var en = processor.NormalizedInfoEntry{}
 		if err := json.Unmarshal([]byte(jsonData), &en); err != nil {
 			return err
 		}
-		key := fmt.Sprintf("%s.%s", prefix, strings.ToLower(en.Action))
 		log.WithField("entry", en).Debug()
+		// in case a unwanted entry is unmarshaled
+		if !strings.Contains(strings.ToLower(en.Action), "normalized") {
+			log.WithField("action", en.Action).Debug("Unwanted")
+			return nil
+		}
+		key := fmt.Sprintf("%s.%s", prefix, strings.ToLower(en.Action))
 
 		ts := time.Time(en.Timestamp).Unix()
 
