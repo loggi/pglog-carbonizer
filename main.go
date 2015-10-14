@@ -37,8 +37,10 @@ func init() {
 			"host": conf.Graphite.Host,
 			"port": conf.Graphite.Port,
 		})
+		log.Info("Enabled to send to graphite/carbon.")
 	} else {
 		gcon = graphite.NewGraphiteNop(conf.Graphite.Host, conf.Graphite.Port)
+		log.Info("Disabled, using nop sender.")
 	}
 
 	log.WithField("Connection", gcon).Info()
