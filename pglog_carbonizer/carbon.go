@@ -30,12 +30,7 @@ func NewGraphiteSender(gcon *graphite.Graphite) Muncher {
 	return func(jsonData string, prefix string) error {
 		gcon.Connect()
 
-		// TODO seiti - implement strategy...
-		switch {
-		case icontains(jsonData, processor.NfoActionKeyOnES):
-			log.WithField("key", processor.NfoActionKeyOnES).Debug("Sent")
-			return sendNormalizedInfoEntry(jsonData, prefix, gcon)
-		case icontains(jsonData, processor.PmiActionKeyOnES):
+		if icontains(jsonData, processor.PmiActionKeyOnES) {
 			log.WithField("key", processor.PmiActionKeyOnES).Debug("Sent")
 			return sendPerMinuteInfoEntry(jsonData, prefix, gcon)
 		}
